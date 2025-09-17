@@ -1,10 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 
-// Configure axios defaults
-axios.defaults.withCredentials = true
-axios.defaults.baseURL = 'http://localhost:1337'
-
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null,
@@ -41,8 +37,21 @@ export const useAuthStore = defineStore('auth', {
           return { success: false, msg: response.data.msg }
         }
       } catch (error) {
-        this.error = error.response?.data?.msg || 'Login failed'
-        return { success: false, msg: this.error }
+        // Проверяем, является ли ошибка связанной с неподтвержденным email
+        const errorMsg = error.response?.data?.msg || 'Login failed'
+        this.error = errorMsg
+        
+        // Если это ошибка подтверждения email, возвращаем специальный флаг
+        const isEmailConfirmationError = errorMsg.includes('подтвердите') || 
+                                       errorMsg.includes('confirm') ||
+                                       errorMsg.includes('подтверждения') ||
+                                       errorMsg.includes('confirmation')
+        
+        return { 
+          success: false, 
+          msg: errorMsg,
+          emailConfirmationRequired: isEmailConfirmationError
+        }
       } finally {
         this.loading = false
       }

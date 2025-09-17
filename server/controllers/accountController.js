@@ -35,6 +35,13 @@ exports.login = (req, res, next) => {
             if (!acc)
                 throw new UserError(req.session.lang == 'en' ? 'Wrong e-mail or password!' : 'Неправильный email или пароль!', 'json')
 
+            // Проверяем, подтвержден ли email
+            if (!acc.active) {
+                throw new UserError(req.session.lang == 'en' ? 
+                    'Please confirm your email address before logging in. Check your email for a confirmation link!' : 
+                    'Пожалуйста, подтвердите ваш email перед входом. Проверьте вашу почту для получения ссылки подтверждения!', 'json')
+            }
+
             bcrypt.compare(req.body.password, acc.password)
                 .then((result) => {
                     if (!result)
@@ -262,7 +269,15 @@ exports.checkRole = (req, res, next) => {
             if (!acc || !["guest", "user", "admin"].includes(acc.role)) {
                 throw new UserError(req.session.lang == 'en' ? "You are not logged in for this page!" : 'Вы не авторизованы для данной страницы!', 'json')
             }
-            else next()
+            
+            // Проверяем, подтвержден ли email
+            if (!acc.active) {
+                throw new UserError(req.session.lang == 'en' ? 
+                    'Please confirm your email address to access this page. Check your email for a confirmation link!' : 
+                    'Пожалуйста, подтвердите ваш email для доступа к этой странице. Проверьте вашу почту для получения ссылки подтверждения!', 'json')
+            }
+            
+            next()
         })
         .catch(err => next(err))
 }
@@ -334,6 +349,16 @@ exports.getProfile = async (req, res, next) => {
         const acc = await accountModel.Account.findById(req.session.user_id, { password: 0, verify_hash: 0 })
         if (!acc) return res.status(404).json({ message: 'User not found' })
 
+        // Проверяем, подтвержден ли email
+        if (!acc.active) {
+            return res.status(403).json({ 
+                message: req.session.lang == 'en' ? 
+                    'Please confirm your email address to access your profile. Check your email for a confirmation link!' : 
+                    'Пожалуйста, подтвердите ваш email для доступа к профилю. Проверьте вашу почту для получения ссылки подтверждения!',
+                emailConfirmed: false
+            })
+        }
+
         // Get avatar from user form data
         const formData = await formModel.findOne({ _id: req.session.user_id }, { photo: 1 })
         const avatar = formData?.photo || ''
@@ -344,7 +369,8 @@ exports.getProfile = async (req, res, next) => {
             role: acc.role,
             registrationDate: acc._id.getTimestamp?.() || undefined,
             status: acc.active ? 'active' : 'inactive',
-            avatar: avatar
+            avatar: avatar,
+            emailConfirmed: true
         })
     } catch (err) {
         next(err)

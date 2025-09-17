@@ -101,8 +101,20 @@
 
           <!-- Modal for messages -->
           <div v-if="showModal" class="modal-overlay" @click="closeModal">
-            <div class="modal-content" @click.stop>
+            <div class="modal-content" @click.stop :class="{ 'email-confirmation-modal': isEmailConfirmationModal }">
+              <div v-if="isEmailConfirmationModal" class="email-confirmation-icon">
+                <i class="fas fa-envelope-open-text"></i>
+              </div>
               <p>{{ modalMessage }}</p>
+              <div v-if="isEmailConfirmationModal" class="email-confirmation-help">
+                <p><strong>{{ t('Что делать дальше?', 'What to do next?') }}</strong></p>
+                <ul>
+                  <li>{{ t('Проверьте папку "Входящие" в вашем email', 'Check your "Inbox" folder') }}</li>
+                  <li>{{ t('Если письма нет, проверьте папку "Спам"', 'If no email, check "Spam" folder') }}</li>
+                  <li>{{ t('Нажмите на ссылку в письме для подтверждения', 'Click the link in the email to confirm') }}</li>
+                  <li>{{ t('После подтверждения попробуйте войти снова', 'After confirmation, try logging in again') }}</li>
+                </ul>
+              </div>
               <button @click="closeModal" class="btn btn-primary btn-sm">OK</button>
             </div>
           </div>
@@ -139,6 +151,7 @@ const resetButtonDisabled = ref(false)
 // Modal state
 const showModal = ref(false)
 const modalMessage = ref('')
+const isEmailConfirmationModal = ref(false)
 
 // Computed properties for UI visibility
 const emailVisible = computed(() => true)
@@ -166,14 +179,16 @@ const currentHeader = computed(() => {
 })
 
 // Modal functions
-const openModal = (message) => {
+const openModal = (message, isEmailConfirmation = false) => {
   modalMessage.value = message
+  isEmailConfirmationModal.value = isEmailConfirmation
   showModal.value = true
 }
 
 const closeModal = () => {
   showModal.value = false
   modalMessage.value = ''
+  isEmailConfirmationModal.value = false
 }
 
 // Mode switching functions
@@ -240,7 +255,12 @@ const handleLogin = async () => {
         router.push('/account')
       }
     } else {
-      openModal(result.msg)
+      // Проверяем, является ли это ошибкой подтверждения email
+      if (result.emailConfirmationRequired) {
+        openModal(result.msg, true)
+      } else {
+        openModal(result.msg)
+      }
     }
   } catch (error) {
     openModal(t.value('Ошибка при входе в систему', 'Login error'))
@@ -453,6 +473,45 @@ onMounted(() => {
   margin-bottom: 20px;
   font-size: 16px;
   line-height: 1.5;
+}
+
+/* Email confirmation modal styles */
+.email-confirmation-modal {
+  max-width: 500px;
+}
+
+.email-confirmation-icon {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.email-confirmation-icon i {
+  font-size: 48px;
+  color: var(--accent-color);
+}
+
+.email-confirmation-help {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: var(--border-radius);
+  margin: 20px 0;
+  text-align: left;
+}
+
+.email-confirmation-help p {
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.email-confirmation-help ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.email-confirmation-help li {
+  margin-bottom: 8px;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 @media (max-width: 480px) {

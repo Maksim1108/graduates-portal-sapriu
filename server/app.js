@@ -45,8 +45,7 @@ app.use(express.urlencoded({ extended: false, limit: '5mb' }));
 // Serve static files
 app.use(`${basePath}/images`, express.static(path.join(__dirname, '../public/images')));
 app.use(`${basePath}/images/avatars`, express.static(path.join(__dirname, '../server/other/avatars')));
-app.use(`${basePath}/stylesheets`, express.static(path.join(__dirname, '../public/stylesheets')));
-app.use(`${basePath}/javascripts`, express.static(path.join(__dirname, '../public/javascripts')));
+
 
 // Serve Vue.js built assets
 app.use(`${basePath}/assets`, express.static(path.join(__dirname, '../dist/assets')));
@@ -84,7 +83,7 @@ app.use(basePath + '/api/edit_main_page', editMainPageRouter)
 // Serve Vue.js app for all other routes
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../dist/index.html'));
-});
+}); 
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -118,7 +117,7 @@ async function startServer() {
         await mongoose.connect(appConfig.db_url);
         console.log('MongoDB подключён');
 
-        app.listen(app.get('port'), '127.0.0.1', () => {
+        app.listen(app.get('port'), '0.0.0.0', () => {
             console.log(`Сервер запущен на порту ${app.get('port')}`);
         });
 

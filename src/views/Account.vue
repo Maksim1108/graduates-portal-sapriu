@@ -950,7 +950,18 @@ const fetchUserData = async () => {
     }
   } catch (error) {
     console.error('Error fetching user data:', error)
-    showMessage('Ошибка загрузки данных', 'error')
+    
+    // Проверяем, является ли это ошибкой подтверждения email
+    if (error.response?.status === 403 && error.response?.data?.emailConfirmed === false) {
+      // Пользователь не подтвердил email - перенаправляем на страницу авторизации
+      showMessage(error.response.data.message, 'error')
+      setTimeout(() => {
+        authStore.logout()
+        router.push('/auth')
+      }, 3000)
+    } else {
+      showMessage('Ошибка загрузки данных', 'error')
+    }
   } finally {
     loading.value = false
   }

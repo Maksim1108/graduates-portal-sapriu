@@ -51,7 +51,3 @@ Internet Portal for Graduates — это полнофункциональное 
 3. Зафиксируйте изменения (`git commit -m 'Add some AmazingFeature'`)
 4. Отправьте в ветку (`git push origin feature/AmazingFeature`)
 5. Откройте Pull Request
-
-<div align="center">
-[⬆ Наверх](#-internet-portal-for-graduates)
-</div>

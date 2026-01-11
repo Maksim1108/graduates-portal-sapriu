@@ -1,0 +1,9 @@
+node_modules
+access.log
+error.log
+.env
+
+dist/
+
+.idea/
+.vscode/

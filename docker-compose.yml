@@ -1,0 +1,23 @@
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: graduates-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  app:
+    build: .
+    container_name: graduates-app
+    restart: unless-stopped
+    ports:
+      - "1337:1337"
+    depends_on:
+      - mongodb
+    env_file:
+      - .env
+
+volumes:
+  mongodb_data:
